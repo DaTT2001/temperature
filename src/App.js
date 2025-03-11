@@ -1,24 +1,42 @@
-import logo from './logo.svg';
 import './App.css';
+import TemperatureData from './TemperatureData';
+import { FaMoon, FaSun } from "react-icons/fa";
+import Scrollbar from 'react-scrollbars-custom';
+import { TableProvider } from './context/TableContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { TemperatureProvider } from './context/TemperatureContext';
+
+function AppContent() {
+  const { darkMode, setDarkMode } = useTheme();
+
+  return (
+    <TableProvider>
+      <TemperatureProvider>
+        <Scrollbar style={{ width: '100vw', height: '100vh' }}>
+          <div className={darkMode ? "bg-dark text-white min-vh-100" : "bg-light text-dark min-vh-100"} style={{ minHeight: "100vh" }}>
+            <div className="container py-3">
+              <TemperatureData darkMode={darkMode} />
+            </div>
+
+            {/* 🌙☀️ Nút chuyển đổi Theme cố định */}
+            <button
+              className={`theme-toggle-btn ${darkMode ? "" : "light"}`}
+              onClick={() => setDarkMode(!darkMode)}
+            >
+              {darkMode ? <FaSun size={24} className="text-warning" /> : <FaMoon size={24} className="text-info" />}
+            </button>
+          </div>
+        </Scrollbar>
+      </TemperatureProvider>
+    </TableProvider>
+  );
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
   );
 }
 

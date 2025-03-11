@@ -1,13 +1,24 @@
+/* Global styles */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+body {
+  background-color: black;
+  color: white; /* Đổi màu chữ để dễ đọc */
+}
 
+/* Style cho code block */
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Wrapper cho container */
+.container {
+  max-width: 1200px;  /* Điều chỉnh chiều rộng tối đa của container */
+  margin: 0 auto;     /* Căn giữa container */
+  padding: 20px;      /* Thêm padding để làm không gian giữa các nội dung */
 }
