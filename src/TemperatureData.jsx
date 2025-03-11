@@ -72,8 +72,6 @@ function TemperatureData({darkMode}) {
 
   useEffect(() => {
     async function fetchData() {
-      console.log("Start Time (GMT+7):", timeRange.startTime);
-      console.log("End Time (GMT+7):", timeRange.endTime);
   
       let query = supabase
         .from(selectedTable)
@@ -102,8 +100,6 @@ function TemperatureData({darkMode}) {
             timeZone: "Asia/Bangkok"
           })
         }));
-  
-        console.log(processedData);
   
         // Kiểm tra có filter không
         if (hasFilter) {

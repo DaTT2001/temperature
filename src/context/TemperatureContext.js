@@ -16,7 +16,6 @@ export function TemperatureProvider({ children }) {
         .select("timestamp, sensor1_temperature, sensor2_temperature, sensor3_temperature, sensor4_temperature, sensor5_temperature, sensor6_temperature")
         .order("timestamp", { ascending: false })
         .limit(1);
-        console.log("Dữ liệu nhận từ Supabase:", data); // 👀 Debug API trả về
       if (error) {
         console.error("Lỗi khi lấy nhiệt độ mới nhất:", error.message);
       } else if (data.length > 0) {
