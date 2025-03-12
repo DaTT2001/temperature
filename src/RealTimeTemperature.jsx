@@ -1,22 +1,36 @@
 import { Card } from "react-bootstrap";
 import { useTemperature } from "../src/context/TemperatureContext";
 import { useTheme } from "../src/context/ThemeContext";
+import { useState, useEffect } from "react";
 
 function RealTimeTemperature() {
   const { latestTemperature, formattedTime } = useTemperature();
   const { darkMode } = useTheme();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 576);
+
+  // 📌 Theo dõi kích thước màn hình để cập nhật layout
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 576);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <Card style={darkMode ? styles.darkMode.card : styles.lightMode.card}>
       <Card.Body>
         <div style={styles.header}>
           <h5>🔥 Temperature</h5>
-          <span style={darkMode ? styles.darkMode.clock : styles.lightMode.clock}>
-            Last update: {formattedTime || "Đang cập nhật..."}
-          </span>
+          {!isMobile && ( // Ẩn trên mobile
+            <span style={darkMode ? styles.darkMode.clock : styles.lightMode.clock}>
+              Last update: {formattedTime || "Đang cập nhật..."}
+            </span>
+          )}
         </div>
 
-        <div style={{ ...styles.sensorGrid, gridTemplateColumns: "repeat(3, 1fr)" }}>
+        {/* Responsive Grid */}
+        <div style={{ ...styles.sensorGrid, gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr)" }}>
           {["sensor1", "sensor2", "sensor3", "sensor4", "sensor5", "sensor6"].map((sensor, index) => (
             <div key={index} style={darkMode ? styles.darkMode.sensorBox : styles.lightMode.sensorBox}>
               <span style={darkMode ? styles.darkMode.sensorName : styles.lightMode.sensorName}>
@@ -69,7 +83,6 @@ const styles = {
       fontFamily: "'Courier New', monospace",
       color: "#32cd32",
       boxShadow: "0 0 8px #32cd32",
-    //   display: window.innerWidth < 576 ? "none" : "inline-block",
     },
     sensorBox: {
       background: "rgba(255, 255, 255, 0.1)",
@@ -111,7 +124,6 @@ const styles = {
       borderRadius: "8px",
       fontFamily: "'Courier New', monospace",
       color: "#333",
-      display: window.innerWidth < 576 ? "none" : "inline-block",
     },
     sensorBox: {
       background: "#f9f9f9",

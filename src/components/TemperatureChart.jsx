@@ -10,14 +10,16 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { useTable } from "../context/TableContext";
 
 // Đăng ký thành phần Chart.js
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-function TemperatureChart({ data, darkMode }) {
+function TemperatureChart({ data, darkMode, timeRange }) {
   // Kiểm tra nếu `data` không tồn tại
+  const { selectedTable } = useTable();
+    
   const safeData = Array.isArray(data) ? data : [];
-
   const chartData = {
     labels: safeData.map(row => 
       new Date(row.timestamp).toLocaleString("vi-VN", { timeZone: "Asia/Bangkok" })
@@ -69,7 +71,6 @@ function TemperatureChart({ data, darkMode }) {
   };
 
   const isDark = darkMode ?? false;
-
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -79,6 +80,20 @@ function TemperatureChart({ data, darkMode }) {
           color: isDark ? "#ffffff" : "#000000",
         },
       },
+      title: {
+        display: true,
+        text: `TEMPERATURE DATA ${selectedTable.toUpperCase()} ${
+          timeRange.startTime && timeRange.endTime
+            ? `FROM ${new Date(timeRange.startTime).toLocaleString("vi-VN", { timeZone: "Asia/Bangkok" }).toUpperCase()} TO ${new Date(timeRange.endTime).toLocaleString("vi-VN", { timeZone: "Asia/Bangkok" }).toUpperCase()}`
+            : ""
+        }`,
+        color: darkMode ? "white" : "black",
+        font: {
+          size: 16,
+          weight: "bold",
+        },
+      },
+      
     },
     scales: {
       x: {
