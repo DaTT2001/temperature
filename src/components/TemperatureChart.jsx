@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+
 import { useTable } from "../context/TableContext";
 
 // Đăng ký thành phần Chart.js
@@ -22,7 +23,7 @@ function TemperatureChart({ data, darkMode, timeRange }) {
   const safeData = Array.isArray(data) ? data : [];
   const chartData = {
     labels: safeData.map(row => 
-      new Date(row.timestamp).toLocaleString("vi-VN", { timeZone: "Asia/Bangkok" })
+      row.timestamp
     ), // Chuyển timestamp từ giây sang GMT+7
     datasets: [
       {
