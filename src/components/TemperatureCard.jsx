@@ -10,16 +10,17 @@ const getColor = (temp) => {
 
 const TemperatureCard = ({ tableName }) => {
   const latestData = useRealtimeStore((state) => state.latestData[tableName]);
+  const sensors = latestData?.sensors || [];
 
-  const calculateAverage = (sensors) => {
-    if (!sensors) return 0;
+  const calculateAverage = () => {
+    if (sensors.length < 8) return "N/A"; // Tránh lỗi nếu dữ liệu không đủ
     const sum = sensors.slice(2, 8).reduce((acc, curr) => acc + curr, 0);
     return (sum / 6).toFixed(1);
   };
 
   return (
     <>
-      {latestData && (
+      {latestData ? (
         <Card
           className="h-100 mx-auto shadow"
           style={{ width: "280px", borderColor: "#2B2B40" }}
@@ -34,27 +35,26 @@ const TemperatureCard = ({ tableName }) => {
           <Card.Body className="py-3 text-center">
             <div className="fw-bold text-muted">Bộ điều khiển</div>
             <div
-              className={`fw-bold ${getColor(latestData?.sensors[0])}`}
+              className={`fw-bold ${getColor(sensors[0])}`}
               style={{ fontSize: "32px" }}
             >
-              {latestData?.sensors[0]}°C
+              {sensors[0] ?? "N/A"}°C
             </div>
+
             <div className="fw-bold text-muted mt-2">Bộ đo</div>
             <div
-              className={`fw-bold ${getColor(latestData?.sensors[1])}`}
+              className={`fw-bold ${getColor(sensors[1])}`}
               style={{ fontSize: "32px" }}
             >
-              {latestData?.sensors[1]}°C
+              {sensors[1] ?? "N/A"}°C
             </div>
 
             <div className="fw-bold text-muted mt-2">Chino TB</div>
             <div
-              className={`fw-bold ${getColor(
-                calculateAverage(latestData?.sensors)
-              )}`}
+              className={`fw-bold ${getColor(calculateAverage())}`}
               style={{ fontSize: "32px" }}
             >
-              {latestData?.sensors[2]}°C
+              {calculateAverage()}°C
             </div>
           </Card.Body>
 
@@ -63,10 +63,12 @@ const TemperatureCard = ({ tableName }) => {
             style={{ backgroundColor: "#151515" }}
           >
             <small className="text-white">
-              Updated: {latestData?.timestamp}
+              Updated: {latestData.timestamp || "N/A"}
             </small>
           </Card.Footer>
         </Card>
+      ) : (
+        <div className="text-center text-muted">Đang chờ dữ liệu...</div>
       )}
     </>
   );

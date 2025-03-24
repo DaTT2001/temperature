@@ -1,6 +1,6 @@
 import React from "react";
 import TemperatureCard from "../components/TemperatureCard";
-import { Container, Row, Col, Form } from "react-bootstrap";
+import { Container, Row, Col } from "react-bootstrap";
 
 const Dashboard = () => {
   return (

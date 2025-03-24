@@ -8,9 +8,18 @@ const Analyst = () => {
   const selectedDate = useHistoricalStore((state) => state.selectedDate);
 
   const handleDateChange = (e) => {
-    const newDate = new Date(e.target.value);
-    setSelectedDate(newDate);
+    try {
+      const newDate = new Date(e.target.value);
+      if (!isNaN(newDate.getTime())) {
+        setSelectedDate(newDate);
+      } else {
+        console.error("Giá trị ngày không hợp lệ:", e.target.value);
+      }
+    } catch (error) {
+      console.error("Lỗi khi thay đổi ngày:", error);
+    }
   };
+
   return (
     <Container>
       {/* Date Picker - Sử dụng historical store */}

@@ -4,48 +4,23 @@ import { Card } from 'react-bootstrap';
 import { useHistoricalStore } from "../services/historicalStore";
 
 const TemperatureChart = ({tableName}) => {
-
     const data = useHistoricalStore((state) => state.dailyData[tableName] || []);
     const selectedDate = useHistoricalStore((state) => state.selectedDate);
     const formattedDate = selectedDate.toLocaleDateString('vi-VN');
     const legendStateRef = useRef({});
     const echartsRef = useRef(null);
-    // Chỉ dùng một ref để lưu trạng thái zoom
-    const zoomStateRef = useRef({
-        start: 0,
-        end: 100
-    });
-    console.log(data);
-    const handleDataZoom = useCallback((params) => {
-        const zoomStart = params.start !== undefined ? params.start : params.batch?.[0]?.start;
-        const zoomEnd = params.end !== undefined ? params.end : params.batch?.[0]?.end;
+    const zoomStateRef = useRef({ start: 0, end: 100 });
 
-        if (zoomStart !== undefined && zoomEnd !== undefined) {
-            zoomStateRef.current = {
-                start: zoomStart,
-                end: zoomEnd
-            };
-            // Force update chart với zoom state mới
-            if (echartsRef.current) {
-                const chartInstance = echartsRef.current.getEchartsInstance();
-                chartInstance.setOption({
-                    dataZoom: [{
-                        start: zoomStart,
-                        end: zoomEnd
-                    }, {
-                        start: zoomStart,
-                        end: zoomEnd
-                    }]
-                });
-            }
-        }
-    }, []);
-    
+    // Safe format time function
     const formatTime = (timestamp) => {
         try {
-            // Check if timestamp is already in HH:mm:ss format
+            if (!timestamp) {
+                console.warn('Empty timestamp received');
+                return '';
+            }
+
+            // Handle 12-hour format
             if (typeof timestamp === 'string' && /^\d{1,2}:\d{2}:\d{2}\s[AP]M$/.test(timestamp)) {
-                // Convert 12-hour format to 24-hour format
                 const [time, period] = timestamp.split(' ');
                 const [hours, minutes, seconds] = time.split(':');
                 let hour = parseInt(hours);
@@ -55,14 +30,14 @@ const TemperatureChart = ({tableName}) => {
                 
                 return `${hour.toString().padStart(2, '0')}:${minutes}:${seconds}`;
             }
-    
+
             // Handle PostgreSQL timestamp
             const date = new Date(timestamp);
             if (isNaN(date.getTime())) {
                 console.error('Invalid timestamp:', timestamp);
                 return '';
             }
-    
+
             return date.toLocaleTimeString('vi-VN', {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -70,31 +45,81 @@ const TemperatureChart = ({tableName}) => {
                 hour12: false
             });
         } catch (error) {
-            console.error('Error formatting timestamp:', error);
+            console.error('Error formatting time:', error);
             return '';
         }
     };
-    
-    const CHART_COLORS = [
-        '#FF6B6B', // Coral Red
-        '#4ECDC4', // Turquoise
-        '#45B7D1', // Sky Blue  
-        '#96C93D', // Lime Green
-        '#FFBE0B', // Golden Yellow
-        '#FF006E', // Hot Pink
-        '#8338EC', // Purple
-        '#3A86FF'  // Royal Blue
-    ];
-    
+
+    // Safe data zoom handler
+    const handleDataZoom = useCallback((params) => {
+        try {
+            const zoomStart = params.start !== undefined ? params.start : params.batch?.[0]?.start;
+            const zoomEnd = params.end !== undefined ? params.end : params.batch?.[0]?.end;
+
+            if (zoomStart !== undefined && zoomEnd !== undefined) {
+                zoomStateRef.current = { start: zoomStart, end: zoomEnd };
+                
+                if (echartsRef.current) {
+                    const chartInstance = echartsRef.current.getEchartsInstance();
+                    chartInstance.setOption({
+                        dataZoom: [{
+                            start: zoomStart,
+                            end: zoomEnd
+                        }, {
+                            start: zoomStart,
+                            end: zoomEnd
+                        }]
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error handling zoom:', error);
+        }
+    }, []);
+
+    // Safe option generator
     const option = useMemo(() => {
-        if (!data || data.length === 0) return {};
-        const SENSOR_NAMES = [
-            'Bộ kiểm soát',
-            'Bộ đo',
-            ...Array.from({ length: 6 }, (_, i) => `Chino Sensor ${i + 1}`)
-        ]
-        return {
-            backgroundColor: 'white',
+        try {
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                console.warn(`No data available for ${tableName}`);
+                return {
+                    title: {
+                        text: `TEMPERATURE CHART ${tableName.toUpperCase()}`,
+                        subtext: `No data available for ${formattedDate}`,
+                        left: 'center'
+                    }
+                };
+            }
+
+            // Validate sensor data
+            const validData = data.filter(item => {
+                if (!item || !Array.isArray(item.sensors)) {
+                    console.warn('Invalid data item:', item);
+                    return false;
+                }
+                return true;
+            });
+
+            if (validData.length === 0) {
+                console.warn('No valid data points found');
+                return {
+                    title: {
+                        text: `TEMPERATURE CHART ${tableName.toUpperCase()}`,
+                        subtext: `Invalid data for ${formattedDate}`,
+                        left: 'center'
+                    }
+                };
+            }
+            if (!data || data.length === 0) return {};
+            const SENSOR_NAMES = [
+                'Bộ kiểm soát',
+                'Bộ đo',
+                ...Array.from({ length: 6 }, (_, i) => `Chino Sensor ${i + 1}`)
+            ]
+            // ...existing option configuration...
+            return {
+                // ...your existing option object...
+                backgroundColor: 'white',
             title: {
                 text: `TEMPERATURE CHART ${tableName.toUpperCase()}`,
                 subtext: `Date: ${formattedDate}`,
@@ -170,6 +195,27 @@ const TemperatureChart = ({tableName}) => {
                         name: `Temperature_Chart_${formattedDate}`,
                         backgroundColor: '#ffffff',
                         iconStyle: { borderColor: 'black' }
+                    },
+                    myFullScreen: {  // Đổi tên để tránh xung đột
+                        show: true,
+                        title: 'Full Screen',
+                        icon: 'path://M176,24H72A24,24,0,0,0,48,48V152a8,8,0,0,0,16,0V48a8,8,0,0,1,8-8H176a8,8,0,0,0,0-16Z M208,48V152a8,8,0,0,0,16,0V48a24,24,0,0,0-24-24H96a8,8,0,0,0,0,16h96A8,8,0,0,1,208,48Z',
+                        onclick: () => {
+                            if (echartsRef.current) {
+                                const chartDom = echartsRef.current.ele;
+                                if (chartDom) {
+                                    if (!document.fullscreenElement) {
+                                        chartDom.requestFullscreen();
+                                    } else {
+                                        document.exitFullscreen();
+                                    }
+                                }
+                            }
+                        },
+                        iconStyle: {
+                            borderColor: 'black',
+                            color: 'black'
+                        }
                     }
                 }
             },
@@ -282,52 +328,70 @@ const TemperatureChart = ({tableName}) => {
                     }
                 }
             },
-            series: Array.from({ length: 8 }, (_, i) => ({
-                name: SENSOR_NAMES[i],
-                type: 'line',
-                data: data.map(d => d.sensors[i]),
-                sampling: 'lttb',
-                showSymbol: false,
-                smooth: true,
-                lineStyle: {
-                    width: 2.5,
-                    color: CHART_COLORS[i],
-                },
-                itemStyle: {
-                    color: CHART_COLORS[i]
+                series: Array.from({ length: 8 }, (_, i) => ({
+                    name: SENSOR_NAMES[i],
+                    type: 'line',
+                    data: validData.map(d => {
+                        const value = d.sensors[i];
+                        // Handle invalid temperature values
+                        if (typeof value !== 'number' || isNaN(value)) {
+                            console.warn(`Invalid temperature value for sensor ${i}:`, value);
+                            return null;
+                        }
+                        return value;
+                    }),
+                    // ...rest of series config...
+                }))
+            };
+        } catch (error) {
+            console.error('Error generating chart options:', error);
+            return {
+                title: {
+                    text: `TEMPERATURE CHART ${tableName.toUpperCase()}`,
+                    subtext: 'Error loading chart data',
+                    left: 'center'
                 }
-            }))
-        };
-    }, [data, formattedDate]);
+            };
+        }
+    }, [data, formattedDate, tableName]);
 
+    // Safe render
     return (
-        <>
-            <Card style={{
-                border: '1px solid #000000',
-                borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
-                <Card.Body>
-                    <ReactECharts
-                        ref={echartsRef}
-                        option={option}
-                        notMerge={false}
-                        lazyUpdate={true}
-                        onEvents={{
-                            'legendselectchanged': (params) => {
+        <Card style={{
+            border: '1px solid #000000',
+            borderRadius: '8px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+            <Card.Body>
+                <ReactECharts
+                    ref={echartsRef}
+                    option={option}
+                    notMerge={false}
+                    lazyUpdate={true}
+                    onEvents={{
+                        'legendselectchanged': (params) => {
+                            try {
                                 legendStateRef.current = params.selected;
-                            },
-                            'datazoom': handleDataZoom
-                        }}
-                        style={{ 
-                            height: '600px',
-                            width: '100%',
-                            maxWidth: '100%'
-                        }}
-                    />
-                </Card.Body>
-            </Card>
-        </>
+                            } catch (error) {
+                                console.error('Error handling legend change:', error);
+                            }
+                        },
+                        'datazoom': handleDataZoom,
+                        'error': (e) => {
+                            console.error('Chart error:', e);
+                        }
+                    }}
+                    style={{ 
+                        height: '600px',
+                        width: '100%',
+                        maxWidth: '100%'
+                    }}
+                    onChartReady={() => {
+                        console.log(`Chart ready for ${tableName}`);
+                    }}
+                />
+            </Card.Body>
+        </Card>
     );
 };
 
