@@ -1,0 +1,59 @@
+:root {
+    /* Màu chính cho dark theme */
+    --bg-dark: #0a0a0a;
+    --bg-card: #151515;
+    --bg-hover: #202020;
+    
+    /* Màu gradient cho chart */
+    --gradient-1: #FF6B6B;
+    --gradient-2: #4ECDC4;
+    --gradient-3: #45B7D1;
+    --gradient-4: #96C93D;
+    --gradient-5: #FFBE0B;
+    --gradient-6: #FF006E;
+    --gradient-7: #8338EC;
+    --gradient-8: #3A86FF;
+  
+    /* Text colors */
+    --text-primary: #FFFFFF;
+    --text-secondary: #B0B0B0;
+    
+    /* Accent colors */
+    --accent-primary: #3699FF;
+    --accent-secondary: #8950FC;
+    
+    /* Temperature status colors */
+    --temp-normal: #0BB783;
+    --temp-warning: #FFA800;
+    --temp-danger: #F64E60;
+  
+    /* Border & shadow */
+    --border-color: #2B2B40;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Áp dụng màu nền mặc định */
+  body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+  }
+
+
+  /* ...existing styles... */
+
+.navbar {
+  background-color: #151515 !important;
+  border-bottom: 1px solid #2B2B40;
+}
+
+.nav-link {
+  color: #B0B0B0 !important;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: #3699FF !important;
+}
+
+.navbar-brand {
+  color: #ffffff !important;
+}
