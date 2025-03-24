@@ -11,7 +11,8 @@ import Footer from "./components/Footer";
 function App() {
     const subscribeToRealtime = useRealtimeStore(state => state.subscribeToRealtime);
     const setSelectedDate = useHistoricalStore(state => state.setSelectedDate);
-
+    const startDayChangeCheck = useHistoricalStore(state => state.startDayChangeCheck);
+    
     useEffect(() => {
         let unsubscribe;
         try {
@@ -44,7 +45,7 @@ function App() {
             stopDayChangeCheck();
         };
     }, []);
-    
+
     return (
         <BrowserRouter>
             <div className="min-vh-100">
