@@ -133,23 +133,22 @@ export const useHistoricalStore = create((set, get) => ({
             console.error(`Lỗi khi fetch dữ liệu lịch sử từ ${tableName}:`, error);
         }
     },
-    startDayChangeCheck: () => {
-        // Check mỗi phút
-        const interval = setInterval(() => {
-            const currentDate = new Date();
-            const selectedDate = get().selectedDate;
+    isLiveMode: true, // Mặc định là Live Mode
+    setLiveMode: (mode) => set({ isLiveMode: mode }),
 
-            // Nếu đang xem today và đã sang ngày mới
-            if (
-                selectedDate.toDateString() === new Date(Date.now() - 86400000).toDateString() && 
-                currentDate.getHours() === 0 && 
-                currentDate.getMinutes() === 0
-            ) {
-                console.log("Đã sang ngày mới, tự động cập nhật date...");
-                get().setSelectedDate(new Date());
-            }
-        }, 60000); // Check mỗi phút
+    startDayChangeCheck: () => { 
+    // Check mỗi phút
+    const interval = setInterval(() => {
+        const currentDate = new Date();
+        const isLiveMode = get().isLiveMode; // Lấy trạng thái Live Mode
 
-        return () => clearInterval(interval);
+        if (isLiveMode) {
+            // Nếu đang ở Live Mode, luôn cập nhật ngày mới
+            get().setSelectedDate(currentDate);
+            console.log("Live Mode: Cập nhật ngày mới...");
+        }
+    }, 60000); // Check mỗi phút
+
+    return () => clearInterval(interval);
     }
 }));

@@ -11,7 +11,7 @@ const Header = () => {
           <Navbar.Brand as={NavLink} to="/">
             <img
               src={logo}
-              alt="Quản Lý Kho"
+              alt="Quản Lý Nhiệt Độ"
               height="40"
               className="d-inline-block align-top"
             />

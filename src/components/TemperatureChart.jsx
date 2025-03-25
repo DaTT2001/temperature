@@ -18,7 +18,6 @@ const TemperatureChart = ({tableName}) => {
                 console.warn('Empty timestamp received');
                 return '';
             }
-
             // Handle 12-hour format
             if (typeof timestamp === 'string' && /^\d{1,2}:\d{2}:\d{2}\s[AP]M$/.test(timestamp)) {
                 const [time, period] = timestamp.split(' ');
@@ -110,13 +109,14 @@ const TemperatureChart = ({tableName}) => {
                     }
                 };
             }
+
             if (!data || data.length === 0) return {};
             const SENSOR_NAMES = [
-                'Bộ kiểm soát',
-                'Bộ đo',
+                'Rex Sensor',
+                'PID Controller',
                 ...Array.from({ length: 6 }, (_, i) => `Chino Sensor ${i + 1}`)
             ]
-            // ...existing option configuration...
+
             return {
                 // ...your existing option object...
                 backgroundColor: 'white',
