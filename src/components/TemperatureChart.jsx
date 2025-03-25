@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useCallback } from 'react';
+import React, { useMemo, useRef, useCallback, useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Card } from 'react-bootstrap';
 import { useHistoricalStore } from "../services/historicalStore";
@@ -10,7 +10,30 @@ const TemperatureChart = ({tableName}) => {
     const legendStateRef = useRef({});
     const echartsRef = useRef(null);
     const zoomStateRef = useRef({ start: 0, end: 100 });
+    const [chartHeight, setChartHeight] = useState('600px');
 
+    // Theo dõi resize window
+    useEffect(() => {
+        const handleResize = () => {
+            const width = window.innerWidth;
+            if (width < 576) { // xs
+                setChartHeight('400px');
+            } else if (width < 768) { // sm
+                setChartHeight('450px');
+            } else if (width < 992) { // md
+                setChartHeight('500px');
+            } else { // lg and above
+                setChartHeight('600px');
+            }
+        };
+
+        // Initial check
+        handleResize();
+
+        // Add listener
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     // Safe format time function
     const formatTime = (timestamp) => {
         try {
@@ -124,26 +147,26 @@ const TemperatureChart = ({tableName}) => {
                 text: `TEMPERATURE CHART ${tableName.toUpperCase()}`,
                 subtext: `Date: ${formattedDate}`,
                 left: 'center',
-                top: 15,
+                top: window.innerWidth < 576 ? 50 : 15,
                 textStyle: {
                     color: '#000',
-                    fontSize: '24',
+                    fontSize: window.innerWidth < 576 ? '18' : '24',
                     fontWeight: 'bold',
                     fontFamily: 'Roboto, Arial, sans-serif'
                 },
                 subtextStyle: {
                     color: '#000',
-                    fontSize: '14',
+                    fontSize: window.innerWidth < 576 ? '12' : '14',
                     fontFamily: 'Roboto, Arial, sans-serif',
-                    padding: [8, 0]
+                    padding: [4, 0]
                 },
                 padding: [0, 0, 40, 0]
             },
             grid: {
-                top: 150,
-                bottom: 80,
-                left: '5%',
-                right: '5%',
+                top: window.innerWidth < 576 ? 140 : 150,
+                bottom: window.innerWidth < 576 ? 60 : 80,
+                left: window.innerWidth < 576 ? '8%' : '5%',
+                right: window.innerWidth < 576 ? '5%' : '5%',
                 containLabel: true,
                 borderColor: 'black',
                 backgroundColor: '#ffffff',
@@ -154,11 +177,12 @@ const TemperatureChart = ({tableName}) => {
                 type: 'scroll',
                 // data: Array.from({ length: 8 }, (_, i) => `Cảm biến ${i + 1}`),
                 data: SENSOR_NAMES,
-                top: 80,
+                top: window.innerWidth < 576 ? 100 : 80,
+                orient: window.innerWidth < 576 ? 'horizontal' : 'horizontal',
                 selected: legendStateRef.current,
                 textStyle: {
                     color: '#333333',
-                    fontSize: '12',
+                    fontSize: window.innerWidth < 576 ? '10' : '12',
                     fontFamily: 'Roboto, Arial, sans-serif'
                 },
                 pageTextStyle: { color: '#333333' },
@@ -181,7 +205,10 @@ const TemperatureChart = ({tableName}) => {
                 borderWidth: 1
             },
             toolbox: {
-                right: '10px',
+                right: window.innerWidth < 576 ? '5px' : '10px',
+                // Move toolbox down on mobile
+                top: window.innerWidth < 576 ? '5px' : '15px',
+                itemSize: window.innerWidth < 576 ? 15 : 20,
                 feature: {
                     dataZoom: {
                         yAxisIndex: 'none',
@@ -225,8 +252,8 @@ const TemperatureChart = ({tableName}) => {
                 realtime: true,
                 start: zoomStateRef.current.start,
                 end: zoomStateRef.current.end,
-                height: 25,
-                bottom: 25,
+                height: window.innerWidth < 576 ? 20 : 25,
+                bottom: window.innerWidth < 576 ? 15 : 25,
                 borderColor: '#000000',
                 backgroundColor: '#ffffff',
                 fillerColor: 'rgba(54, 153, 255, 0.2)',
@@ -353,7 +380,7 @@ const TemperatureChart = ({tableName}) => {
                 }
             };
         }
-    }, [data, formattedDate, tableName]);
+    }, [data, formattedDate, tableName, window.innerWidth]);
 
     // Safe render
     return (
