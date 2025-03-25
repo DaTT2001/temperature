@@ -71,10 +71,10 @@ const Analyst = () => {
     setSelectedDate(new Date()); // Cập nhật ngay lập tức về ngày hôm nay
   };
   return (
-    <Container>
+    <Container className="px-2 px-sm-3 px-md-4">
       {/* Chế độ hiển thị */}
-      <Row className="justify-content-between">
-        <Col md={4}>
+      <Row className="justify-content-between g-2 mb-3">
+        <Col xs={12} sm={6} md={4} lg={3}>
           <Button
             variant={isLiveMode ? "primary" : "secondary"}
             onClick={handleLiveMode}
@@ -90,7 +90,7 @@ const Analyst = () => {
           </Button>
         </Col>
         {!isLiveMode && (
-          <Col md={4}>
+          <Col xs={12} sm={6} md={3} lg={3}>
             <Form.Group>
               <Form.Control
                 type="date"
@@ -100,7 +100,7 @@ const Analyst = () => {
             </Form.Group>
           </Col>
         )}
-        <Col md={2}>
+        <Col xs={6} sm={6} md={3} lg={3}>
           <Form.Group className="mb-3">
             {/* <Form.Label>Chọn Lò</Form.Label> */}
             <Form.Select
@@ -118,7 +118,7 @@ const Analyst = () => {
             </Form.Select>
           </Form.Group>
         </Col>
-        <Col md={2} className="text-end">
+        <Col xs={6} sm={6} md={2} lg={3} className="text-end">
           <Button variant="success" onClick={exportToExcel} className="ms-2">
             Export Excel
           </Button>
