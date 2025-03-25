@@ -2,6 +2,37 @@ import React from "react";
 import { Button, Card } from "react-bootstrap";
 import { useRealtimeStore } from "../services/realtimeStore";
 import { useNavigate } from "react-router-dom";
+import useLanguageStore from "../services/languageStore"; // Import Zustand store
+
+const locales = {
+  vi: {
+    title: "NHIỆT ĐỘ",
+    loading: "Đang chờ dữ liệu...",
+    pidSensor: "Cảm biến PID",
+    rexSensor: "Cảm biến REX",
+    chinoAvg: "Chino TB",
+    updated: "Cập nhật lúc",
+    noData: "N/A",
+  },
+  en: {
+    title: "TEMPERATURE",
+    loading: "Loading data...",
+    pidSensor: "PID Sensor",
+    rexSensor: "REX Sensor",
+    chinoAvg: "Chino AVG",
+    updated: "Updated at",
+    noData: "N/A",
+  },
+  zh: {
+    title: "溫度",
+    loading: "加載數據...",
+    pidSensor: "PID傳感器",
+    rexSensor: "REX傳感器",
+    chinoAvg: "Chino平均",
+    updated: "更新於",
+    noData: "無數據",
+  },
+};
 
 const getColor = (temp) => {
   if (temp > 500) return "text-danger"; // 🔴 Đỏ (Nguy hiểm)
@@ -13,6 +44,7 @@ const TemperatureCard = ({ tableName }) => {
   const navigate = useNavigate();
   const latestData = useRealtimeStore((state) => state.latestData[tableName]);
   const sensors = latestData?.sensors || [];
+  const { language } = useLanguageStore();
 
   const calculateAverage = () => {
     if (sensors.length < 8) return "N/A"; // Tránh lỗi nếu dữ liệu không đủ
@@ -51,11 +83,13 @@ const TemperatureCard = ({ tableName }) => {
             className="text-center border-secondary py-2 text-white"
             style={{ backgroundColor: "#151515" }}
           >
-            {`TEMPERATURE ${tableName.toUpperCase()}`}
+            {`${locales[language].title} ${tableName.toUpperCase()}`}
           </Card.Header>
 
           <Card.Body className="py-3 text-center">
-            <div className="fw-bold text-muted">PID Controller</div>
+            <div className="fw-bold text-muted">
+              {locales[language].pidSensor}
+            </div>
             <div
               className={`fw-bold ${getColor(sensors[0])}`}
               style={{ fontSize: "32px" }}
@@ -63,7 +97,9 @@ const TemperatureCard = ({ tableName }) => {
               {sensors[0] ?? "N/A"}°C
             </div>
 
-            <div className="fw-bold text-muted mt-2">REX Sensor</div>
+            <div className="fw-bold text-muted mt-2">
+              {locales[language].rexSensor}
+            </div>
             <div
               className={`fw-bold ${getColor(sensors[1])}`}
               style={{ fontSize: "32px" }}
@@ -71,7 +107,9 @@ const TemperatureCard = ({ tableName }) => {
               {sensors[1] ?? "N/A"}°C
             </div>
 
-            <div className="fw-bold text-muted mt-2">Chino AVG</div>
+            <div className="fw-bold text-muted mt-2">
+              {locales[language].chinoAvg}
+            </div>
             <div
               className={`fw-bold ${getColor(calculateAverage())}`}
               style={{ fontSize: "32px" }}
@@ -86,19 +124,19 @@ const TemperatureCard = ({ tableName }) => {
               bottom: "10px",
               left: "50%",
               transform: "translateX(-50%)",
-              backgroundColor: "rgba(255, 193, 7, 0.9)", // Màu vàng nổi bật
-              color: "black", // Chữ đen dễ đọc
-              padding: "8px 12px",
-              borderRadius: "8px",
-              fontSize: "16px", // Tăng kích thước chữ
-              fontWeight: "bold",
-              boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.3)", // Đổ bóng cho nổi bật
+              backgroundColor: "black", // Tông xám đậm, đồng bộ với giao diện
+              color: "#ffffff", // Chữ trắng để dễ đọc
+              padding: "6px 10px", // Giảm padding để gọn hơn
+              borderRadius: "6px", // Bo góc nhẹ
+              fontSize: "14px", // Giảm kích thước chữ
+              fontWeight: "normal", // Bỏ bold để nhẹ nhàng hơn
+              boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.4)", // Bóng mờ nhẹ
               opacity: 0,
               transition: "opacity 0.3s ease-in-out",
-              whiteSpace: "nowrap", // Tránh bị xuống dòng
+              whiteSpace: "nowrap",
             }}
           >
-            {`Updated: ${latestData?.timestamp || "N/A"}`}
+            {`${locales[language].updated}: ${latestData?.timestamp || "N/A"}`}
           </div>
           {/* <Card.Footer
             className="text-center border-secondary py-1 text-white"
@@ -110,7 +148,9 @@ const TemperatureCard = ({ tableName }) => {
           </Card.Footer> */}
         </Card>
       ) : (
-        <div className="text-center text-muted">Đang chờ dữ liệu...</div>
+        <div className="text-center text-muted">
+          {locales[language].loading}
+        </div>
       )}
     </>
   );
