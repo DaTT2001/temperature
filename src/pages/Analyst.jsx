@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import TemperatureChart from "../components/TemperatureChart";
 import { useHistoricalStore } from "../services/historicalStore";
@@ -89,16 +89,23 @@ const locales = {
 
 const Analyst = () => {
   const { id } = useParams();
-  const setSelectedDate = useHistoricalStore((state) => state.setSelectedDate);
+  // const setSelectedDate = useHistoricalStore((state) => state.setSelectedDate);
   const selectedDate = useHistoricalStore((state) => state.selectedDate);
   const isLiveMode = useHistoricalStore((state) => state.isLiveMode);
   const setLiveMode = useHistoricalStore((state) => state.setLiveMode);
+  const fetchHistoricalData = useHistoricalStore((state) => state.fetchHistoricalData);
   const { language } = useLanguageStore();
 
   const [selectedFurnace, setSelectedFurnace] = useState(id || "t4");
   const data = useHistoricalStore(
     (state) => state.dailyData[selectedFurnace] || []
   );
+  
+  useEffect(() => {
+    if (isLiveMode) {
+      setLiveMode(true); // Đảm bảo state được cập nhật
+    }
+  }, []);
 
   const exportToExcel = () => {
     if (!data || data.length === 0) {
@@ -151,12 +158,12 @@ const Analyst = () => {
     { id: "g2", name: "G2" },
     { id: "g3", name: "G3" },
   ];
-
   const handleDateChange = (e) => {
     try {
       const newDate = new Date(e.target.value);
       if (!isNaN(newDate.getTime())) {
-        setSelectedDate(newDate);
+        setLiveMode(false);
+        fetchHistoricalData(newDate);
       } else {
         console.error(locales[language].invalidDate, e.target.value);
       }
@@ -164,9 +171,11 @@ const Analyst = () => {
       console.error(locales[language].dateError, error);
     }
   };
+
   const handleLiveMode = () => {
-    setLiveMode(true);
-    setSelectedDate(new Date()); // Cập nhật ngay lập tức về ngày hôm nay
+    if (!isLiveMode) {
+      setLiveMode(true);
+    }
   };
   return (
     <Container className="px-2 px-sm-3 px-md-4">

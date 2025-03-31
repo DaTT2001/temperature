@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Card } from "react-bootstrap";
+import { Card } from "react-bootstrap";
 import { useRealtimeStore } from "../services/realtimeStore";
 import { useNavigate } from "react-router-dom";
 import useLanguageStore from "../services/languageStore"; // Import Zustand store
@@ -41,11 +41,13 @@ const getColor = (temp) => {
 };
 
 const TemperatureCard = ({ tableName }) => {
+    
+    
   const navigate = useNavigate();
   const latestData = useRealtimeStore((state) => state.latestData[tableName]);
   const sensors = latestData?.sensors || [];
   const { language } = useLanguageStore();
-
+  console.log(latestData);
   const calculateAverage = () => {
     if (sensors.length < 8) return "N/A"; // Tránh lỗi nếu dữ liệu không đủ
     const sum = sensors.slice(2, 8).reduce((acc, curr) => acc + curr, 0);
@@ -88,7 +90,7 @@ const TemperatureCard = ({ tableName }) => {
 
           <Card.Body className="py-3 text-center">
             <div className="fw-bold text-muted">
-              {locales[language].pidSensor}
+              {locales[language].rexSensor}
             </div>
             <div
               className={`fw-bold ${getColor(sensors[0])}`}
@@ -98,7 +100,7 @@ const TemperatureCard = ({ tableName }) => {
             </div>
 
             <div className="fw-bold text-muted mt-2">
-              {locales[language].rexSensor}
+              {locales[language].pidSensor}
             </div>
             <div
               className={`fw-bold ${getColor(sensors[1])}`}

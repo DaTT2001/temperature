@@ -9,47 +9,23 @@ import { useHistoricalStore } from "./services/historicalStore";
 import Footer from "./components/Footer";
 
 function App() {
-  const subscribeToRealtime = useRealtimeStore(
-    (state) => state.subscribeToRealtime
-  );
-  const setSelectedDate = useHistoricalStore((state) => state.setSelectedDate);
-  const startDayChangeCheck = useHistoricalStore(
-    (state) => state.startDayChangeCheck
-  );
+  const setLiveMode = useHistoricalStore((state) => state.setLiveMode);
+  const fetchLiveData = useHistoricalStore((state) => state.fetchLiveData);
 
   useEffect(() => {
-    let unsubscribe;
-    try {
-      // Subscribe to realtime data
-      unsubscribe = subscribeToRealtime();
+    console.log('🚀 Khởi tạo ứng dụng...');
+    
+    // Chỉ cần bật Live Mode, polling sẽ được quản lý bởi historicalStore
+    setLiveMode(true);
+    fetchLiveData();
 
-      // Fetch today's historical data
-      setSelectedDate(new Date());
-    } catch (error) {
-      console.error("Lỗi trong useEffect của App:", error);
-    }
-
-    // Cleanup subscription on unmount
+    // Cleanup khi component unmount
     return () => {
-      if (typeof unsubscribe === "function") {
-        unsubscribe();
-      }
+      console.log('🛑 Dọn dẹp ứng dụng...');
+      setLiveMode(false); // Sẽ tự động dừng polling
     };
-  }, [subscribeToRealtime, setSelectedDate]);
-
-  useEffect(() => {
-    const unsubscribeRealtime = subscribeToRealtime();
-    setSelectedDate(new Date());
-
-    // Start checking for day change
-    const stopDayChangeCheck = startDayChangeCheck();
-
-    return () => {
-      unsubscribeRealtime();
-      stopDayChangeCheck();
-    };
-  }, []);
-
+  }, [setLiveMode, fetchLiveData]);
+  
   return (
     <BrowserRouter>
       <div className="min-vh-100">
@@ -58,8 +34,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/analyst" element={<Analyst />} />
-          <Route path="/analyst/:id" element={<Analyst />} />{" "}
-          {/* Thêm route này */}
+          <Route path="/analyst/:id" element={<Analyst />} />
         </Routes>
         <Footer />
       </div>

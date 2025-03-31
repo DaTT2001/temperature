@@ -1,36 +1,9 @@
 import { create } from "zustand";
-import { supabase } from "./supabase";
+import { formatTemperatureData, API_BASE_URL } from "./api";
 
-const formatTemperatureData = (record) => {
-  try {
-    return {
-      timestamp: new Date(record.timestamp).toLocaleString("vi-VN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-      }),
-      sensors: [
-        record.sensor1_temperature,
-        record.sensor2_temperature,
-        record.sensor3_temperature,
-        record.sensor4_temperature,
-        record.sensor5_temperature,
-        record.sensor6_temperature,
-        record.sensor7_temperature,
-        record.sensor8_temperature,
-      ],
-    };
-  } catch (error) {
-    console.error("Lỗi khi định dạng dữ liệu nhiệt độ:", error);
-    return null; // Trả về null để tránh lỗi khi hiển thị
-  }
-};
+const POLLING_INTERVAL = 10000;
 
-export const useRealtimeStore = create((set) => ({
+export const useRealtimeStore = create((set, get) => ({
   latestData: {
     t4: null,
     t5: null,
@@ -38,77 +11,111 @@ export const useRealtimeStore = create((set) => ({
     g2: null,
     g3: null,
   },
+  isPolling: false,
+  activeIntervals: [],
 
-  subscribeToRealtime: () => {
+  startPolling: () => {
+    console.log('🔄 Kiểm tra trạng thái polling...');
+    
+    // Nếu đang polling thì không tạo thêm interval mới
+    if (get().isPolling) {
+      console.log('⚠️ Polling đã đang chạy');
+      return get().stopPolling;
+    }
+
+    console.log('✅ Bắt đầu polling mới');
     const tables = ["t4", "t5", "g1", "g2", "g3"];
+    const intervals = [];
 
-    // Lấy dữ liệu mới nhất khi khởi động
-    tables.forEach(async (tableName) => {
+    const fetchLatestData = async (table) => {
       try {
-        const { data, error } = await supabase
-          .from(tableName)
-          .select("*")
-          .order("timestamp", { ascending: false })
-          .limit(1)
-          .single();
+        // const today = new Date().toISOString().split('T')[0];
+        // console.log(`📡 Fetch dữ liệu ${table} cho ngày ${today}`);
 
-        if (error) throw error;
+        // const response = await fetch(
+        //   `${API_BASE_URL}/${table}?date=${today}`
+        // );        
+        const response = await fetch(`${API_BASE_URL}/${table}/latest`);
+        if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
+        const { data: latestRecord } = await response.json();
 
-        if (data) {
-          const formattedData = formatTemperatureData(data);
-          if (formattedData) {
-            set((state) => ({
-              latestData: {
-                ...state.latestData,
-                [tableName]: formattedData,
-              },
-            }));
-          }
+        // const result = await response.json();
+        
+        // if (result.data && result.data.length > 0) {
+        //   const latestRecord = result.data[result.data.length - 1];
+        //   const formattedData = formatTemperatureData(latestRecord);
+          
+        //   set((state) => {
+        //     if (JSON.stringify(state.latestData[table]) !== JSON.stringify(formattedData)) {
+        //       console.log(`✨ Cập nhật dữ liệu mới cho ${table}`);
+        //       return {
+        //         latestData: {
+        //           ...state.latestData,
+        //           [table]: formattedData,
+        //         },
+        //       };
+        //     }
+        //     return state;
+        //   });
+        // }
+        if (latestRecord) {
+          const formattedData = formatTemperatureData(latestRecord);
+          
+          set((state) => {
+            // Chỉ cập nhật nếu dữ liệu mới khác dữ liệu cũ
+            if (JSON.stringify(state.latestData[table]) !== JSON.stringify(formattedData)) {
+              console.log(`✨ Cập nhật dữ liệu mới cho ${table}`);
+              return {
+                latestData: {
+                  ...state.latestData,
+                  [table]: formattedData,
+                },
+              };
+            }
+            return state;
+          });
         }
       } catch (error) {
-        console.error(`Lỗi khi lấy dữ liệu từ bảng ${tableName}:`, error);
+        console.error(`❌ Lỗi khi lấy dữ liệu ${table}:`, error.message);
       }
+    };
+
+    // Fetch lần đầu
+    tables.forEach(table => fetchLatestData(table));
+
+    // Set up polling
+    tables.forEach(table => {
+      const interval = setInterval(() => fetchLatestData(table), POLLING_INTERVAL);
+      intervals.push(interval);
     });
 
-    // Subscribe realtime
-    const subscriptions = tables.map((tableName) => {
-      try {
-        return supabase
-          .channel(`realtime-${tableName}`)
-          .on(
-            "postgres_changes",
-            { event: "INSERT", schema: "public", table: tableName },
-            (payload) => {
-              try {
-                if (payload.new) {
-                  const formattedData = formatTemperatureData(payload.new);
-                  if (formattedData) {
-                    set((state) => ({
-                      latestData: {
-                        ...state.latestData,
-                        [tableName]: formattedData,
-                      },
-                    }));
-                  }
-                }
-              } catch (error) {
-                console.error(
-                  `Lỗi khi xử lý dữ liệu realtime từ ${tableName}:`,
-                  error
-                );
-              }
-            }
-          )
-          .subscribe();
-      } catch (error) {
-        console.error(`Lỗi khi đăng ký realtime cho bảng ${tableName}:`, error);
-        return null; // Trả về null để tránh crash
-      }
+    set({ 
+      isPolling: true,
+      activeIntervals: intervals 
     });
 
-    return () =>
-      subscriptions.forEach((sub) => {
-        if (sub) sub.unsubscribe();
+    // Return cleanup function
+    return () => {
+      console.log('🛑 Cleanup polling...');
+      intervals.forEach(interval => clearInterval(interval));
+      set({ 
+        isPolling: false,
+        activeIntervals: [] 
       });
+    };
+  },
+
+  stopPolling: () => {
+    const state = get();
+    console.log('🛑 Dừng polling...', state.activeIntervals.length);
+    
+    state.activeIntervals.forEach(interval => {
+      clearInterval(interval);
+    });
+    
+    set({ 
+      isPolling: false,
+      activeIntervals: [] 
+    });
   },
 }));
