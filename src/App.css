@@ -1,0 +1,17 @@
+/* Đảm bảo toàn bộ trang có chiều cao tối thiểu là 100vh */
+html, body, #root {
+  height: 100%;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Trang chiếm ít nhất toàn bộ chiều cao màn hình */
+}
+
+.main-content {
+  flex: 1; /* Đẩy footer xuống nếu nội dung không đủ */
+}
+footer {
+  margin-top: auto; /* Đảm bảo footer luôn ở dưới */
+}
