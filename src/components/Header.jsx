@@ -1,10 +1,10 @@
 import React from "react";
 import { Nav, Dropdown } from "react-bootstrap";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import useLanguageStore from "../services/languageStore";
 import logo from "../assets/KD logo tách nềnn.png";
 
-const Header = () => {
+const Header = ({ sidebarOpen, setSidebarOpen }) => {
   const { language, setLanguage } = useLanguageStore();
 
   const languages = {
@@ -24,17 +24,49 @@ const Header = () => {
     vi: { home: "🏠 Trang chủ", analyst: "📜 Phân tích" },
     zh: { home: "🏠 儀表板", analyst: "📜 分析" },
   };
-
+  const handleOverlayClick = (e) => {
+    if (e.target.classList.contains("sidebar-overlay")) setSidebarOpen(false);
+  };
   return (
     <>
-      <div className="sidebar d-flex flex-column bg-dark text-white vh-100 p-3">
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? "show" : ""} d-md-none`}
+        onClick={handleOverlayClick}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          background: "rgba(0,0,0,0.35)",
+          zIndex: 2000,
+          display: sidebarOpen ? "block" : "none",
+          transition: "opacity 0.3s",
+        }}
+      ></div>
+      <div
+        className={`sidebar d-flex flex-column bg-dark text-white vh-100 p-3 ${sidebarOpen ? "open" : ""}`}
+        style={{
+          transition: "left 0.3s",
+          zIndex: 2001,
+        }}
+      >
+        {/* Nút đóng sidebar trên mobile */}
+        <button
+          className="d-md-none ms-auto mb-3 btn btn-sm btn-secondary"
+          onClick={() => setSidebarOpen(false)}
+        >
+          ×
+        </button>
         <div className="mb-4 text-center">
-          <img
-            src={logo}
-            alt="Quản Lý Nhiệt Độ"
-            height="50"
-            className="d-inline-block align-top"
-          />
+          <Link to="/">
+            <img
+              src={logo}
+              alt="Quản Lý Nhiệt Độ"
+              height="50"
+              className="d-inline-block align-top"
+            />
+          </Link>
         </div>
         <Nav className="flex-column mb-4">
           <Nav.Link as={NavLink} to="/" className="text-white mb-2" activeClassName="active">
@@ -90,50 +122,60 @@ const Header = () => {
       </div>
       <style>
         {`
-          .sidebar {
-            width: 220px;
-            min-width: 180px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1040;
-            height: 100vh;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.08);
-            display: flex;
-            flex-direction: column;
-          }
-                  .sidebar-credit {
-          margin-top: auto;
-          font-size: 0.95rem;
-          color: #adb5bd;
-          padding-bottom: 12px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 4px;
-        }
-          .sidebar .nav-link {
-            color: #fff !important;
-            font-size: 1.1rem;
-            border-radius: 4px;
-          }
-          .sidebar .nav-link.active, .sidebar .nav-link:focus, .sidebar .nav-link:hover {
-            background: #495057 !important;
-            color: #fff !important;
-          }
-          .custom-dropdown-toggle {
-            border: none !important;
-            background-color: #343a40 !important;
-            color: #fff !important;
-            padding: 0.5rem 1rem;
-            display: flex;
-            align-items: center;
-            font-size: 1rem;
-          }
-          .custom-dropdown-toggle::after {
-            border-top-color: #6c757d !important;
-          }
-        `}
+    .sidebar {
+      width: 220px;
+      min-width: 180px;
+      position: fixed;
+      top: 0;
+      left: 0; /* Luôn hiện trên desktop */
+      z-index: 1040;
+      height: 100vh;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      background: #212529;
+      transition: left 0.3s;
+    }
+    @media (max-width: 896px) {
+      .sidebar {
+        left: -240px;
+      }
+      .sidebar.open {
+        left: 0;
+      }
+    }
+    .sidebar-credit {
+      margin-top: auto;
+      font-size: 0.95rem;
+      color: #adb5bd;
+      padding-bottom: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+    }
+    .sidebar .nav-link {
+      color: #fff !important;
+      font-size: 1.1rem;
+      border-radius: 4px;
+    }
+    .sidebar .nav-link.active, .sidebar .nav-link:focus, .sidebar .nav-link:hover {
+      background: #495057 !important;
+      color: #fff !important;
+    }
+    .custom-dropdown-toggle {
+      border: none !important;
+      background-color: #343a40 !important;
+      color: #fff !important;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      font-size: 1rem;
+    }
+    .custom-dropdown-toggle::after {
+      border-top-color: #6c757d !important;
+    }
+  `}
       </style>
     </>
   );
